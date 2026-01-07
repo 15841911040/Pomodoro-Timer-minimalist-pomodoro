@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>番茄钟</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- 右上角主题切换 -->
+  <button id="theme-btn" class="icon-btn" title="切换主题">
+    <svg id="icon-sun" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.93c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41zm13.42 13.42c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41zM5.99 19.07l-1.41 1.41c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0zm12.02-13.13c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41z"></path></svg>
+    <svg id="icon-moon" viewBox="0 0 24 24" style="display:none"><path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"></path></svg>
+  </button>
+
+  <div id="box">
+    <!-- 视觉圆环 -->
+    <div id="visual-container">
+      <div class="circle-track">
+        <!-- 液体填充层 -->
+        <div id="fill-wave" class="circle-fill"></div>
+      </div>
+      <!-- 文字层 -->
+      <div id="inner-content">
+        <div id="phase">准备就绪</div>
+        <div id="timer">00:00</div>
+        <div id="round">1 / 4</div>
+      </div>
+    </div>
+
+    <!-- 按钮组 -->
+    <div id="btnRow">
+      <button id="start" class="btn-main">开始</button>
+      <button id="reset" class="btn-sec">重置</button>
+    </div>
+    
+    <!-- 设置面板 -->
+    <div id="ctrl">
+      <div class="row">
+        <span class="label">工作 (分:秒)</span>
+        <div class="inputs">
+          <input id="wm" type="number" min="0"><span class="sep">:</span>
+          <input id="ws" type="number" min="0" max="59">
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">休息 (分:秒)</span>
+        <div class="inputs">
+          <input id="rm" type="number" min="0"><span class="sep">:</span>
+          <input id="rs" type="number" min="0" max="59">
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">循环轮数</span>
+        <input id="cycles" type="number" min="1" max="99" style="width:40px">
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
