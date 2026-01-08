@@ -1,4 +1,4 @@
-/* --- sw.js --- */
+/* --- sw.js (V9.1) --- */
 const KEY = 'ptState';
 const DEFAULT_STATE = {
   status: 'idle', phase: 'work', endTime: null,
@@ -8,11 +8,16 @@ const DEFAULT_STATE = {
 let autoDecisionTimer = null;
 let pendingDecision = null; 
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.set({ [KEY]: DEFAULT_STATE });
+// 【核心修复】安装或重启时，先检查有没有旧数据
+chrome.runtime.onInstalled.addListener(async () => {
+  const d = await chrome.storage.local.get(KEY);
+  // 只有当没有数据时（是新用户），才写入默认值
+  // 这样你的 40 分钟设置就会被永久保留
+  if (!d[KEY]) {
+    await chrome.storage.local.set({ [KEY]: DEFAULT_STATE });
+  }
 });
 
-// 执行默认操作
 async function executeDefaultAction() {
   if (!pendingDecision) return;
   const d = await chrome.storage.local.get(KEY);
@@ -37,7 +42,6 @@ async function finishAll(s) {
   notify('done', '🎉 全部完成！', '太棒了，计划已结束。', [], 3);
 }
 
-// 核心通知函数
 function notify(id, title, message, buttons = [], autoConfirmSec = 0) {
   if (autoDecisionTimer) clearTimeout(autoDecisionTimer);
   
@@ -48,14 +52,12 @@ function notify(id, title, message, buttons = [], autoConfirmSec = 0) {
     message: message,
     buttons: buttons,
     priority: 2,
-    // 强制停留，等待JS代码控制关闭
     requireInteraction: true 
   }, (cid) => {
-    // 设定倒计时
     if (autoConfirmSec > 0) {
       autoDecisionTimer = setTimeout(() => {
         chrome.notifications.clear(cid); 
-        executeDefaultAction(); // 时间到，自动执行
+        executeDefaultAction();
       }, autoConfirmSec * 1000);
     }
   });
@@ -64,7 +66,7 @@ function notify(id, title, message, buttons = [], autoConfirmSec = 0) {
 chrome.notifications.onClosed.addListener((notifId, byUser) => {
   if (byUser && pendingDecision) {
     if (autoDecisionTimer) clearTimeout(autoDecisionTimer);
-    executeDefaultAction(); // 用户手动关闭 -> 视为同意
+    executeDefaultAction();
   }
 });
 
@@ -93,7 +95,6 @@ async function onTimerFinished() {
       await chrome.storage.local.set({ [KEY]: s });
       
       pendingDecision = { type: 'to_rest' };
-      // 【这里改为 10 秒】
       notify('ask_rest', `第 ${s.curCycle} 轮结束`, '休息一下吗？', [{title:'✅ 休息'},{title:'⏭️ 跳过'}], 10);
     }
   } else {
@@ -101,7 +102,6 @@ async function onTimerFinished() {
     await chrome.storage.local.set({ [KEY]: s });
     
     pendingDecision = { type: 'to_work' };
-    // 【这里改为 10 秒】
     notify('ask_work', '休息结束', `准备第 ${s.curCycle+1} 轮工作`, [{title:'🚀 开始'}], 10);
   }
   chrome.runtime.sendMessage({ cmd: 'tick' }).catch(()=>{});

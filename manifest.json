@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "极简番茄钟",
-  "description": "一个自定义网页番茄钟",
+  "description": "一个自定义网页番茄钟，极简科技风，防卡死，液态流体倒计时。",
   "version": "1.0",
   "icons": {
     "16": "icon.png",

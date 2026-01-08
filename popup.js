@@ -1,3 +1,4 @@
+/* --- popup.js (V9.1) --- */
 const KEY = 'ptState';
 const THEME_KEY = 'ptTheme';
 
@@ -65,14 +66,14 @@ async function render() {
   else el.phase.textContent = s.phase === 'work' ? '专注中' : '休息中';
 
   const total = s.durationSec || 1;
-  // 注水逻辑：100% - 剩余百分比 = 当前水位
   const percentFilled = (1 - (displaySeconds / total)) * 100;
   el.fill.style.height = s.status === 'idle' ? '0%' : `${Math.min(100, Math.max(0, percentFilled))}%`;
   el.box.setAttribute('data-phase', s.phase);
 
   el.start.textContent = s.status === 'running' ? '暂停' : '开始';
   
-  // 输入框防抖
+  // 防抖回填：仅当不是用户正在操作的那个输入框时才更新值
+  // 这样保证用户打字时，输入框不会被 render 强行重置
   if (document.activeElement.tagName !== 'INPUT') {
       const setTime = (mInp, sInp, minVal) => {
          const t = Math.round(minVal * 60);
@@ -100,6 +101,7 @@ el.start.onclick = async () => {
 el.reset.onclick = async () => {
   const d = await chrome.storage.local.get(KEY);
   const s = d[KEY] || {};
+  // 重置时，保留用户当前的 workMin 设定，而不是强制变回 25
   const resetS = { 
     ...s, status:'idle', phase:'work', endTime:null, curCycle:1,
     durationSec: Math.round(s.workMin*60), timeLeftSec: Math.round(s.workMin*60)
@@ -110,19 +112,20 @@ el.reset.onclick = async () => {
 };
 
 const inputs = [el.wm, el.ws, el.rm, el.rs, el.cycles];
-inputs.forEach(i => i.addEventListener('change', async () => {
+// 【核心修改】这里改成了 'input'，实时保存！
+inputs.forEach(i => i.addEventListener('input', async () => {
    const d = await chrome.storage.local.get(KEY);
    const s = d[KEY] || {};
    
    let wm = Math.max(0, +el.wm.value||0), ws = Math.max(0, +el.ws.value||0);
    let totalWork = wm*60 + ws;
-   if(totalWork < 1) { totalWork = 1; el.ws.value = 1; }
-   s.workMin = totalWork / 60;
+   if(totalWork < 1) { /* 不要在这里强行改 value，会让用户无法删除数字 */ }
+   // 我们只保存有效值
+   s.workMin = Math.max(1, totalWork) / 60;
    
    let rm = Math.max(0, +el.rm.value||0), rs = Math.max(0, +el.rs.value||0);
    let totalRest = rm*60 + rs;
-   if(totalRest < 1) { totalRest = 1; el.rs.value = 1; }
-   s.restMin = totalRest / 60;
+   s.restMin = Math.max(1, totalRest) / 60;
    
    s.totalCycles = Math.max(1, +el.cycles.value||1);
    
@@ -131,7 +134,7 @@ inputs.forEach(i => i.addEventListener('change', async () => {
      s.timeLeftSec = s.durationSec;
    }
    await chrome.storage.local.set({[KEY]: s});
-   render();
+   render(); // 立即渲染一遍
 }));
 
 initTheme();
